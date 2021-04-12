@@ -30,7 +30,8 @@ public class PracticalTest01Var03 extends AppCompatActivity {
 
     private int  sum, dif;
     private EditText firstNum, secondNum, operationField;
-    private Button plusBut, minusBut;
+    private Button plusBut, minusBut, nextActivity;
+    private String op;
 
     private ButtonClickListener buttonClickListener = new ButtonClickListener();
     private class ButtonClickListener implements View.OnClickListener {
@@ -40,15 +41,35 @@ public class PracticalTest01Var03 extends AppCompatActivity {
                 case R.id.plus:
                     Log.d(Constants.TAG, "PLUS BUTTON PRESSED");
                     if (firstNum.getText().toString().length() > 0 && secondNum.getText().toString().length() > 0 ) {
+                        op = "+";
                         operationField.setText(firstNum.getText() + " + " + secondNum.getText());
                     }
                     break;
                 case R.id.minus:
                     Log.d(Constants.TAG, "MINUS BUTTON PRESSED");
                     if (firstNum.getText().toString().length() > 0 && secondNum.getText().toString().length() > 0 ) {
+                        op = "-";
                         operationField.setText(firstNum.getText() + " - " + secondNum.getText());
                     }
                     break;
+            }
+        }
+    }
+
+
+    private final SaveInfoClickListener saveInfoClickListener = new SaveInfoClickListener();
+    private class SaveInfoClickListener implements View.OnClickListener {
+        @Override
+        public void onClick(View v) {
+            Log.d(Constants.TAG,"Save info");
+            if (firstNum.getText().toString().length() > 0 && secondNum.getText().toString().length() > 0 && op.length() > 0) {
+                Intent intent = new Intent("ro.pub.cs.systems.eim.lab3.myapplication.intent.action.PracticalTest01Var03SecondaryActivity");
+                intent.putExtra("ro.pub.cs.systems.eim.lab3.activity2.FIRST_NUM", Integer.parseInt(firstNum.getText().toString()));
+                intent.putExtra("ro.pub.cs.systems.eim.lab3.activity2.SECOND_NUM",Integer.parseInt(secondNum.getText().toString()));
+                intent.putExtra("ro.pub.cs.systems.eim.lab3.activity2.OP", op);
+                startActivityForResult(intent, 2021);
+            } else {
+                Toast.makeText(getApplication(), "SOME ERROR", Toast.LENGTH_LONG).show();
             }
         }
     }
@@ -68,6 +89,9 @@ public class PracticalTest01Var03 extends AppCompatActivity {
         minusBut.setOnClickListener(buttonClickListener);
 
         operationField = (EditText)findViewById(R.id.operation);
+
+        nextActivity = (Button)findViewById(R.id.navigate_second_activity);
+        nextActivity.setOnClickListener(saveInfoClickListener);
 
         if (savedInstanceState == null) {
             Log.d(Constants.TAG , "NO PREVIOUS STATE");
@@ -100,6 +124,17 @@ public class PracticalTest01Var03 extends AppCompatActivity {
         if (savedInstanceState.containsKey(Constants.OPERATION)) {
             operationField = (EditText)findViewById(R.id.operation);
             operationField.setText(savedInstanceState.getString(Constants.OPERATION));
+        }
+    }
+
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent intent) {
+        super.onActivityResult(requestCode, resultCode, intent);
+        switch (requestCode) {
+            case 2021:
+                Toast.makeText(this, "Activity 2 returned with result " + resultCode, Toast.LENGTH_LONG).show();
+                break;
         }
     }
 }
