@@ -33,6 +33,9 @@ public class PracticalTest01Var03 extends AppCompatActivity {
     private Button plusBut, minusBut, nextActivity;
     private String op;
 
+    private int serviceStatus = Constants.SERVICE_STOPPED;
+    private IntentFilter intentFilter = new IntentFilter();
+
     private ButtonClickListener buttonClickListener = new ButtonClickListener();
     private class ButtonClickListener implements View.OnClickListener {
         @Override
@@ -56,6 +59,33 @@ public class PracticalTest01Var03 extends AppCompatActivity {
         }
     }
 
+    private MessageBroadcastReceiver messageBroadcastReceiver = new MessageBroadcastReceiver();
+    private class MessageBroadcastReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Log.d(Constants.BROADCAST_RECEIVER_TAG, intent.getStringExtra(Constants.BROADCAST_RECEIVER_EXTRA));
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        registerReceiver(messageBroadcastReceiver, intentFilter);
+    }
+
+    @Override
+    protected void onPause() {
+        unregisterReceiver(messageBroadcastReceiver);
+        super.onPause();
+    }
+
+    @Override
+    protected void onDestroy() {
+        Intent intent = new Intent(this, PracticalTest01Var03Service.class);
+        stopService(intent);
+        super.onDestroy();
+    }
+
 
     private final SaveInfoClickListener saveInfoClickListener = new SaveInfoClickListener();
     private class SaveInfoClickListener implements View.OnClickListener {
@@ -63,6 +93,17 @@ public class PracticalTest01Var03 extends AppCompatActivity {
         public void onClick(View v) {
             Log.d(Constants.TAG,"Save info");
             if (firstNum.getText().toString().length() > 0 && secondNum.getText().toString().length() > 0 && op.length() > 0) {
+
+                if (serviceStatus == Constants.SERVICE_STOPPED) {
+                    Log.d(Constants.TAG, "Service started");
+                    Intent intent = new Intent(getApplicationContext(), PracticalTest01Var03Service.class);
+                    intent.putExtra(Constants.FIRST_NUM,  Integer.parseInt(firstNum.getText().toString()));
+                    intent.putExtra(Constants.SECOND_NUM,  Integer.parseInt(secondNum.getText().toString()));
+                    getApplicationContext().startService(intent);
+                    serviceStatus = Constants.SERVICE_STARTED;
+                }
+
+
                 Intent intent = new Intent("ro.pub.cs.systems.eim.lab3.myapplication.intent.action.PracticalTest01Var03SecondaryActivity");
                 intent.putExtra("ro.pub.cs.systems.eim.lab3.activity2.FIRST_NUM", Integer.parseInt(firstNum.getText().toString()));
                 intent.putExtra("ro.pub.cs.systems.eim.lab3.activity2.SECOND_NUM",Integer.parseInt(secondNum.getText().toString()));
@@ -71,8 +112,11 @@ public class PracticalTest01Var03 extends AppCompatActivity {
             } else {
                 Toast.makeText(getApplication(), "SOME ERROR", Toast.LENGTH_LONG).show();
             }
+
         }
     }
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -92,6 +136,9 @@ public class PracticalTest01Var03 extends AppCompatActivity {
 
         nextActivity = (Button)findViewById(R.id.navigate_second_activity);
         nextActivity.setOnClickListener(saveInfoClickListener);
+
+        intentFilter.addAction("opeationPLUS");
+        intentFilter.addAction("opeationMINUS");
 
         if (savedInstanceState == null) {
             Log.d(Constants.TAG , "NO PREVIOUS STATE");
